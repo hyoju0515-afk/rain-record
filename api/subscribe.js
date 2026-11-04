@@ -3,7 +3,7 @@ import { put, list, get } from '@vercel/blob';
 async function readSubscriptions() {
   const { blobs } = await list({ prefix: 'rain-alert/subscriptions.json' });
   if (!blobs.length) return [];
-  const item = await get(blobs[0].url, { access: 'private' });
+  const item = await get('rain-alert/subscriptions.json', { access: 'private' });
   if (!item) return [];
   return JSON.parse(await new Response(item.stream).text());
 }
