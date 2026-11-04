@@ -3,7 +3,7 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b4fa3">
+  <meta name="theme-color" content="#0b4fa3">\n  <link rel="manifest" href="/manifest.json">
   <title>비 만난 날 기록</title>
   <style>
     * { box-sizing: border-box; }
@@ -50,7 +50,7 @@
     <h1>비 만난 날 기록</h1>
     <p class="sub">갑자기 비를 만난 날의 상황을 기록해 보세요.</p>
 
-    <form id="recordForm" novalidate>
+    <section style="padding:14px 0 18px;border-bottom:1px solid #e8ebf0;margin-bottom:8px">\n      <h2 style="margin:0 0 6px">☔ 아침 비 알림</h2>\n      <p class="sub" style="margin:0 0 10px">광주 북구 중흥동 · 매일 오전 8시 예보 확인 · 비가 예상되면 알림</p>\n      <button id="notifyBtn" type="button" style="margin-top:0">아이폰 비 알림 켜기</button>\n      <p id="notifyMsg" class="storage-note" aria-live="polite">아이폰은 Safari에서 홈 화면에 추가한 뒤 이 앱을 열어 알림을 켜세요.</p>\n    </section>\n\n    <form id="recordForm" novalidate>
       <label for="date">날짜</label>
       <input type="date" id="date" required>
 
