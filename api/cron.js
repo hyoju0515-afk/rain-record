@@ -25,10 +25,7 @@ export default async function handler(req, res) {
     const weatherRes = await fetch(url);
     if (!weatherRes.ok) throw new Error('Weather API failed');
     const weather = await weatherRes.json();
-    const now = new Date(new Date().toLocaleString('en-US', { timeZone: 'Asia/Seoul' }));
-    const target = new Date(now);
-    target.setHours(8, 0, 0, 0);
-    const idx = weather.hourly.time.findIndex(t => new Date(t).getHours() === 8);
+    const idx = weather.hourly.time.findIndex(t => t.endsWith('T08:00'));
     const probability = idx >= 0 ? weather.hourly.precipitation_probability[idx] : null;
     const mm = idx >= 0 ? weather.hourly.precipitation[idx] : null;
     const shouldAlert = probability !== null && (probability >= 40 || mm >= 0.1);
