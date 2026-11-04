@@ -3,8 +3,8 @@ self.addEventListener('push', event => {
   try { data = event.data ? event.data.json() : {}; } catch {}
   event.waitUntil(self.registration.showNotification(data.title || '비 알림', {
     body: data.body || '외출 전 비 예보를 확인하세요.',
-    icon: '/icon-192.png',
-    badge: '/icon-192.png',
+    icon: '/icon.svg',
+    badge: '/icon.svg',
     data: { url: '/' }
   }));
 });
