@@ -34,28 +34,53 @@ export default async function handler(req, res) {
     url.search = new URLSearchParams({
       latitude: String(location.latitude), longitude: String(location.longitude),
       hourly: 'precipitation_probability,precipitation',
-      forecast_days: '1', timezone: 'Asia/Seoul'
+      forecast_days: '2', timezone: 'Asia/Seoul'
     });
     const weatherRes = await fetch(url);
     if (!weatherRes.ok) throw new Error('Weather API failed');
     const weather = await weatherRes.json();
-    const idx = weather.hourly.time.findIndex(t => t.endsWith('T08:00'));
-    const probability = idx >= 0 ? weather.hourly.precipitation_probability[idx] : null;
-    const mm = idx >= 0 ? weather.hourly.precipitation[idx] : null;
-    const shouldAlert = probability !== null && (probability >= 40 || mm >= 0.1);
-    if (!shouldAlert) return res.status(200).json({ sent: 0, rainExpected: false, probability, location: location.name });
+
+    const today = new Intl.DateTimeFormat('en-CA', {
+      timeZone: 'Asia/Seoul', year: 'numeric', month: '2-digit', day: '2-digit'
+    }).format(new Date());
+    const todayIndexes = weather.hourly.time
+      .map((time, index) => time.startsWith(today) ? index : -1)
+      .filter(index => index >= 0);
+
+    const hourly = todayIndexes.map(index => ({
+      probability: weather.hourly.precipitation_probability[index],
+      precipitation: weather.hourly.precipitation[index]
+    }));
+    const maxProbability = hourly.reduce((max, hour) =>
+      hour.probability == null ? max : Math.max(max, hour.probability), 0);
+    const totalPrecipitation = hourly.reduce((sum, hour) =>
+      sum + (Number(hour.precipitation) || 0), 0);
+    const shouldAlert = hourly.some(hour =>
+      (hour.probability != null && hour.probability >= 40) ||
+      (Number(hour.precipitation) >= 0.1)
+    );
+
+    if (!todayIndexes.length) throw new Error('No hourly forecast data for today');
+    if (!shouldAlert) {
+      return res.status(200).json({
+        sent: 0, rainExpected: false, maxProbability, totalPrecipitation, location: location.name
+      });
+    }
+
     webpush.setVapidDetails('mailto:rain-alert@example.com', process.env.VAPID_PUBLIC_KEY, process.env.VAPID_PRIVATE_KEY);
     const subscriptions = await getSubscriptions();
     const payload = JSON.stringify({
-      title: '☔ 오늘 오전 비 예보',
-      body: `${location.name}, 오전 8시 비 올 가능성 ${probability}%예요. 외출 전 우산을 챙기세요.`
+      title: '☔ 오늘 비 예보',
+      body: `${location.name}, 오늘 중 비가 예상돼요. 강수확률 최고 ${maxProbability}%, 예상 강수량 ${totalPrecipitation.toFixed(1)}mm예요. 우산을 챙기세요.`
     });
     let sent = 0;
     for (const sub of subscriptions) {
       try { await webpush.sendNotification(sub, payload); sent++; }
       catch (e) { if (e.statusCode !== 404 && e.statusCode !== 410) console.error(e); }
     }
-    return res.status(200).json({ sent, rainExpected: true, probability, location: location.name });
+    return res.status(200).json({
+      sent, rainExpected: true, maxProbability, totalPrecipitation, location: location.name
+    });
   } catch (e) {
     console.error(e);
     return res.status(500).json({ error: 'Cron failed' });
