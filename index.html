@@ -3,234 +3,76 @@
 <head>
   <meta charset="utf-8">
   <meta name="viewport" content="width=device-width, initial-scale=1">
-  <meta name="theme-color" content="#0b4fa3">\n  <link rel="manifest" href="/manifest.json">
-  <title>비 만난 날 기록</title>
+  <meta name="theme-color" content="#0b4fa3">
+  <link rel="manifest" href="/manifest.json">
+  <title>아침 비 알림</title>
   <style>
     * { box-sizing: border-box; }
-    body {
-      margin: 0; padding: 24px 16px 40px; font-family: system-ui, -apple-system, sans-serif;
-      font-size: 16px; color: #222; background: #f5f7fb;
-    }
-    main { width: 100%; max-width: 560px; margin: 0 auto; }
-    .panel { background: #fff; border: 1px solid #e2e6ee; border-radius: 14px; padding: 22px; box-shadow: 0 4px 18px rgba(20,35,60,.05); }
-    h1 { font-size: 22px; margin: 0 0 6px; }
-    .sub { color: #687386; font-size: 13px; margin: 0 0 18px; }
-    label { display: block; margin: 15px 0 5px; font-weight: 650; }
-    .hint { font-size: 12px; color: #687386; font-weight: 400; }
-    input, select {
-      display: block; width: 100%; max-width: 100%; padding: 11px 12px; font-size: 16px;
-      border: 1px solid #c8cfda; border-radius: 8px; background: #fff; color: #222;
-    }
-    input:focus, select:focus { outline: 3px solid rgba(11,79,163,.14); border-color: #0b4fa3; }
-    button {
-      width: 100%; margin-top: 20px; padding: 13px; font-size: 16px; font-weight: 650;
-      border: 0; border-radius: 8px; background: #0b4fa3; color: #fff; cursor: pointer;
-    }
-    button:disabled { background: #888; cursor: wait; }
-    #msg { margin-top: 14px; padding: 11px; border-radius: 8px; display: none; overflow-wrap: anywhere; font-size: 14px; }
-    #msg.ok { display: block; background: #e6f4ea; color: #1b5e20; }
-    #msg.err { display: block; background: #fdecea; color: #b71c1c; }
-    #msg.wait { display: block; background: #eef2f7; color: #333; }
-    .storage-note { margin: 14px 0 0; font-size: 12px; color: #687386; line-height: 1.55; }
-    .history { margin-top: 18px; }
-    .history-head { display: flex; justify-content: space-between; align-items: center; gap: 12px; }
-    h2 { font-size: 17px; margin: 0; }
-    #count { color: #687386; font-size: 13px; }
-    .record { padding: 12px 0; border-top: 1px solid #e8ebf0; font-size: 14px; line-height: 1.55; }
-    .record strong { display: block; font-size: 14px; }
-    .record small { color: #687386; }
-    .empty { color: #687386; font-size: 13px; padding: 14px 0 2px; }
-    .danger { background: #fff; color: #a32626; border: 1px solid #e5bcbc; margin-top: 10px; }
-    @media (max-width: 420px) { body { padding: 14px 10px 28px; } .panel { padding: 17px; } }
+    body { margin: 0; min-height: 100vh; display: grid; place-items: center; padding: 24px; font-family: system-ui, -apple-system, sans-serif; color: #18304d; background: #f3f7fc; }
+    main { width: 100%; max-width: 420px; padding: 30px 24px; text-align: center; background: white; border: 1px solid #e0e8f2; border-radius: 20px; box-shadow: 0 8px 28px rgba(20,50,90,.08); }
+    .icon { font-size: 48px; }
+    h1 { margin: 12px 0 8px; font-size: 25px; }
+    p { color: #5d6e82; line-height: 1.65; font-size: 14px; }
+    button { width: 100%; margin-top: 18px; padding: 15px; border: 0; border-radius: 12px; color: white; background: #1459a6; font-size: 16px; font-weight: 700; }
+    button:disabled { opacity: .6; }
+    #status { min-height: 48px; margin-top: 16px; font-size: 13px; overflow-wrap: anywhere; }
   </style>
 </head>
 <body>
-<main>
-  <section class="panel">
-    <h1>비 만난 날 기록</h1>
-    <p class="sub">갑자기 비를 만난 날의 상황을 기록해 보세요.</p>
-
-    <section style="padding:14px 0 18px;border-bottom:1px solid #e8ebf0;margin-bottom:8px">\n      <h2 style="margin:0 0 6px">☔ 아침 비 알림</h2>\n      <p class="sub" style="margin:0 0 10px">광주 북구 중흥동 · 매일 오전 8시 예보 확인 · 비가 예상되면 알림</p>\n      <button id="notifyBtn" type="button" style="margin-top:0">아이폰 비 알림 켜기</button>\n      <p id="notifyMsg" class="storage-note" aria-live="polite">아이폰은 Safari에서 홈 화면에 추가한 뒤 이 앱을 열어 알림을 켜세요.</p>\n    </section>\n\n    <form id="recordForm" novalidate>
-      <label for="date">날짜</label>
-      <input type="date" id="date" required>
-
-      <label for="person">기록자 <span class="hint">(별칭만 입력, 실명 금지)</span></label>
-      <input type="text" id="person" maxlength="20" placeholder="예: 비온뒤" required>
-
-      <label for="place">비 맞은 곳 <span class="hint">(대략적인 위치만)</span></label>
-      <input type="text" id="place" maxlength="30" placeholder="예: 지하철역 근처" required>
-
-      <label for="hasUmbrella">우산 있었나</label>
-      <select id="hasUmbrella" required>
-        <option value="">선택하세요</option>
-        <option value="예">예</option>
-        <option value="아니오">아니오</option>
-      </select>
-
-      <label for="action">대처</label>
-      <select id="action" required>
-        <option value="">선택하세요</option>
-        <option value="그냥 맞음">그냥 맞음</option>
-        <option value="우산 구입">우산 구입</option>
-      </select>
-
-      <label for="price">우산값 (원) <span class="hint">(안 샀으면 0)</span></label>
-      <input type="number" id="price" min="0" step="1" inputmode="numeric" placeholder="예: 6000" required>
-
-      <label for="note">비고 <span class="hint">(선택)</span></label>
-      <input type="text" id="note" maxlength="100" placeholder="예: 출근길에 갑자기 옴">
-
-      <button id="saveBtn" type="submit">저장</button>
-      <div id="msg" role="status" aria-live="polite"></div>
-    </form>
-    <p class="storage-note">저장된 기록은 현재 사용 중인 브라우저에 보관됩니다. 다른 기기나 브라우저와 자동으로 동기화되지는 않습니다. 브라우저 데이터 삭제 시 기록도 사라질 수 있습니다.</p>
-  </section>
-
-  <section class="panel history" aria-labelledby="historyTitle">
-    <div class="history-head">
-      <h2 id="historyTitle">저장한 기록</h2>
-      <span id="count">0건</span>
-    </div>
-    <div id="records"></div>
-    <button class="danger" id="clearBtn" type="button">이 브라우저의 기록 전체 삭제</button>
-  </section>
-</main>
-
+  <main>
+    <div class="icon" aria-hidden="true">☔</div>
+    <h1>아침 비 알림</h1>
+    <p>광주 북구 중흥동<br>매일 오전 7시 30분에 확인해<br>오전 8시 비가 예상되면 아이폰으로 알려드려요.</p>
+    <button id="notifyBtn" type="button">비 알림 켜기</button>
+    <p id="status" role="status" aria-live="polite">아이폰은 Safari에서 홈 화면에 추가한 앱을 열어 알림을 켜주세요.</p>
+  </main>
 <script>
 (() => {
-  'use strict';
-  const STORAGE_KEY = 'rain-records-v1';
-  const $ = (id) => document.getElementById(id);
-  const form = $('recordForm');
-  const btn = $('saveBtn');
-  const msg = $('msg');
-
-  function todayString() {
-    const t = new Date();
-    const m = String(t.getMonth() + 1).padStart(2, '0');
-    const d = String(t.getDate()).padStart(2, '0');
-    return `${t.getFullYear()}-${m}-${d}`;
+  const button = document.getElementById('notifyBtn');
+  const status = document.getElementById('status');
+  const say = (message) => { status.textContent = message; };
+  function decodeKey(key) {
+    const padding = '='.repeat((4 - key.length % 4) % 4);
+    const raw = atob((key + padding).replace(/-/g, '+').replace(/_/g, '/'));
+    return Uint8Array.from(raw, c => c.charCodeAt(0));
   }
-
-  $('date').value = todayString();
-  $('date').max = todayString();
-
-  function value(id) { return $(id).value.trim(); }
-  function show(text, kind) {
-    msg.textContent = text;
-    msg.className = kind;
-  }
-
-  function readRecords() {
+  button.addEventListener('click', async () => {
+    button.disabled = true;
+    say('알림 설정을 확인하고 있어요.');
     try {
-      const parsed = JSON.parse(localStorage.getItem(STORAGE_KEY) || '[]');
-      return Array.isArray(parsed) ? parsed : [];
-    } catch {
-      return [];
-    }
-  }
-
-  function validate(d) {
-    const errors = [];
-    if (!d.date) errors.push('날짜를 선택해 주세요.');
-    else if (d.date > todayString()) errors.push('오늘보다 뒤의 날짜는 기록할 수 없습니다.');
-    if (!d.person) errors.push('기록자 별칭을 입력해 주세요. 실명은 쓰지 마세요.');
-    if (!d.place) errors.push('비 맞은 곳을 입력해 주세요. 대략적인 위치만 적어 주세요.');
-    if (!d.hasUmbrella) errors.push('우산이 있었는지 골라 주세요.');
-    if (!d.action) errors.push('어떻게 대처했는지 골라 주세요.');
-
-    if (d.price === '') {
-      errors.push('우산값을 입력해 주세요. 사지 않았다면 0을 적어 주세요.');
-    } else if (!/^\d+$/.test(d.price) || !Number.isSafeInteger(Number(d.price))) {
-      errors.push('우산값은 0 이상의 정수(원)로 입력해 주세요.');
-    } else {
-      const p = Number(d.price);
-      if (d.action === '그냥 맞음' && p !== 0) errors.push('"그냥 맞음"을 골랐다면 우산값은 0이어야 합니다.');
-      if (d.action === '우산 구입' && p < 1) errors.push('"우산 구입"을 골랐다면 우산값을 1원 이상으로 입력해 주세요.');
-    }
-    if (d.note.length > 100) errors.push('비고는 100자 이내로 적어 주세요.');
-    return errors;
-  }
-
-  function renderRecords() {
-    const records = readRecords().sort((a, b) => (b.savedAt || '').localeCompare(a.savedAt || ''));
-    $('count').textContent = `${records.length}건`;
-    const container = $('records');
-    container.replaceChildren();
-
-    if (!records.length) {
-      const empty = document.createElement('p');
-      empty.className = 'empty';
-      empty.textContent = '아직 저장된 기록이 없습니다.';
-      container.appendChild(empty);
-      return;
-    }
-
-    records.forEach((r) => {
-      const article = document.createElement('article');
-      article.className = 'record';
-      const title = document.createElement('strong');
-      title.textContent = `${r.date} · ${r.person}`;
-      const detail = document.createElement('div');
-      detail.textContent = `${r.place} · 우산 ${r.hasUmbrella} · ${r.action} · ${Number(r.price).toLocaleString('ko-KR')}원`;
-      article.append(title, detail);
-      if (r.note) {
-        const note = document.createElement('small');
-        note.textContent = `비고: ${r.note}`;
-        article.appendChild(note);
+      if (!('serviceWorker' in navigator) || !('PushManager' in window) || !('Notification' in window)) {
+        throw new Error('이 환경은 웹 푸시를 지원하지 않아요. iOS 16.4 이상에서 Safari로 홈 화면에 추가한 앱을 열어주세요.');
       }
-      container.appendChild(article);
-    });
-  }
-
-  form.addEventListener('submit', (event) => {
-    event.preventDefault();
-    const data = {
-      date: value('date'),
-      person: value('person'),
-      place: value('place'),
-      hasUmbrella: value('hasUmbrella'),
-      action: value('action'),
-      price: value('price'),
-      note: value('note')
-    };
-    const errors = validate(data);
-    if (errors.length) {
-      show(errors.join(' '), 'err');
-      return;
-    }
-
-    btn.disabled = true;
-    btn.textContent = '저장하는 중...';
-    show('저장하는 중...', 'wait');
-
-    try {
-      const records = readRecords();
-      records.push({ ...data, price: Number(data.price), savedAt: new Date().toISOString() });
-      localStorage.setItem(STORAGE_KEY, JSON.stringify(records));
-      show(`${data.date} ${data.person} ${data.place} 기록을 저장했습니다.`, 'ok');
-      $('place').value = '';
-      $('hasUmbrella').value = '';
-      $('action').value = '';
-      $('price').value = '';
-      $('note').value = '';
-      renderRecords();
+      if (location.protocol !== 'https:') throw new Error('보안 연결(HTTPS)에서 열어주세요.');
+      const registration = await navigator.serviceWorker.register('/sw.js');
+      await navigator.serviceWorker.ready;
+      let permission = Notification.permission;
+      if (permission === 'default') permission = await Notification.requestPermission();
+      if (permission !== 'granted') throw new Error('아이폰 설정에서 이 앱의 알림을 허용한 뒤 다시 눌러주세요.');
+      const keyResponse = await fetch('/api/subscribe');
+      if (!keyResponse.ok) throw new Error('알림 서버에 연결하지 못했어요. 잠시 후 다시 시도해주세요.');
+      const { publicKey } = await keyResponse.json();
+      if (!publicKey) throw new Error('서버의 VAPID 공개 키 설정을 확인해야 해요.');
+      let subscription = await registration.pushManager.getSubscription();
+      if (!subscription) {
+        subscription = await registration.pushManager.subscribe({
+          userVisibleOnly: true,
+          applicationServerKey: decodeKey(publicKey)
+        });
+      }
+      const saveResponse = await fetch('/api/subscribe', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(subscription)
+      });
+      if (!saveResponse.ok) throw new Error('알림 등록을 저장하지 못했어요. Vercel 설정을 확인해야 해요.');
+      say('알림이 켜졌어요. 비 예보가 있으면 오전 7시 30분에 알려드릴게요.');
+      button.textContent = '알림 켜짐';
     } catch (error) {
-      show('저장하지 못했습니다. 브라우저 저장 공간 또는 설정을 확인해 주세요.', 'err');
-    } finally {
-      btn.disabled = false;
-      btn.textContent = '저장';
+      say(error.message || '알림 설정 중 문제가 생겼어요.');
+      button.disabled = false;
     }
   });
-
-  $('clearBtn').addEventListener('click', () => {
-    if (!confirm('이 브라우저에 저장된 모든 기록을 삭제할까요? 삭제 후 복구할 수 없습니다.')) return;
-    localStorage.removeItem(STORAGE_KEY);
-    renderRecords();
-    show('이 브라우저의 기록을 삭제했습니다.', 'ok');
-  });
-
-  renderRecords();
 })();
 </script>
 </body>
