@@ -7,7 +7,7 @@ const LON = 126.9145;
 async function getSubscriptions() {
   const { blobs } = await list({ prefix: 'rain-alert/subscriptions.json' });
   if (!blobs.length) return [];
-  const item = await get(blobs[0].url, { access: 'private' });
+  const item = await get('rain-alert/subscriptions.json', { access: 'private' });
   return item ? JSON.parse(await new Response(item.stream).text()) : [];
 }
 
