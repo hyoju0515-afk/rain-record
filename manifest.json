@@ -1,0 +1,10 @@
+{
+  "name": "비 알림",
+  "short_name": "비 알림",
+  "start_url": "/",
+  "display": "standalone",
+  "background_color": "#f5f7fb",
+  "theme_color": "#0b4fa3",
+  "lang": "ko",
+  "icons": []
+}
